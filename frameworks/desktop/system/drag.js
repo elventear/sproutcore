@@ -507,10 +507,32 @@ SC.Drag = SC.Object.extend(
       layout: { top: frame.y, left: frame.x, width: frame.width, height: frame.height },
       owner: this,
       didCreateLayer: function() {
+        function cloneCanvas(node) {
+            // Assume Canvas elements will be leafs in the DOM
+            if (node.tagName == 'CANVAS') {
+                // If the Canvas doesn't have an ID don't bother trying.
+                if (node.id) {
+                    var old_node = document.getElementById(node.id),
+                        ctx = node.getContext('2d');
+                        if (old_node) {
+                            ctx.drawImage(old_node, 0, 0);
+                        }
+                    
+                }
+                return;
+            }
+            if (node.hasChildNodes()) {
+                // BFS search
+                for (var i=0; i<node.childNodes.length; i++) {
+                    cloneCanvas(node.childNodes[i]);
+                }
+            }
+        }
         if (dragView) {
           var layer = dragView.get('layer') ;
           if (layer) {
             layer = layer.cloneNode(true) ;
+            cloneCanvas(layer);
             // Make sure the layer we put in the ghostView wrapper is not displaced.
             layer.style.top = "0px" ;
             layer.style.left = "0px" ;
