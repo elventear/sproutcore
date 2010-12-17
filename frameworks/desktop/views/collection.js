@@ -2880,7 +2880,7 @@ SC.CollectionView = SC.View.extend(
 
       // make the op into its actual value
       op = SC.DRAG_MOVE ;
-    }
+    } else this.reload();
     
     return op; 
   },
