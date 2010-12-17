@@ -412,6 +412,7 @@ SC.SelectView = SC.ButtonView.extend(
         value: value,
         isEnabled: YES,
         checkbox: isChecked,
+        target: this,
         action: this.displaySelectedItem
       }) ;
 
@@ -561,44 +562,11 @@ SC.SelectView = SC.ButtonView.extend(
      Action method for the select button menu items
 
   */
-  displaySelectedItem: function() {
-    var menuView, currSel, itemViews, title, val, itemIdx = 0, button, object,
-      len, found = null, objTmp;
-    
-    //Get MenuPane, currentSelectedMenuItem & menuItemView
-    // Get the main parent view to show the menus
-      
-    menuView = this.parentMenu() ;
-    currSel = menuView.get('currentSelectedMenuItem') ;
-    itemViews = menuView.menuItemViews ;
-    
-    //  Fetch the index of the current selected item
-    if (currSel && itemViews) {
-      itemIdx = itemViews.indexOf(currSel) ;
-    }
-
-    // Get the select button View
-    button = menuView.get('anchor') ;
-
-    // set the value and title
-    object = menuView.get('items') ;
-    len = object.length ;
-
-    while (!found && (--len >= 0)) {
-      objTmp = object[len];
-      title = !SC.none(objTmp.title) ? objTmp.title: object.toString() ;
-      val =  !SC.none(objTmp.value) ? objTmp.value: title ;
-
-      if (title === this.get('value') && (itemIdx === len)) {
-        found = object ;
-        button.set('value', val) ;
-        button.set('title', title) ;
-      }
-    }
-
-    // set the icon, currentSelectedItem and itemIdx
-    button.set('icon', this.get('icon')).set('_currentSelItem', currSel).
-      set('_itemIdx', itemIdx) ;
+  displaySelectedItem: function(menuView) { 
+      var currentItem = menuView.get('selectedItem'); 
+      this.set('value', currentItem.get('value')) ; 
+      this.set('title', currentItem.get('title')) ; 
+      this.set('itemIdx', currentItem.get('contentIndex')) ;
   },
 
   /**
