@@ -320,7 +320,7 @@ SC.Drag = SC.Object.extend(
     if (source && source.dragDidBegin) source.dragDidBegin(this, loc) ;
     
     // let all drop targets know that a drag has started
-    var ary = this._dropTargets() ;
+    var ary = this._dropTargets(source) ;
     for (var idx=0, len=ary.length; idx<len; idx++) {
       ary[idx].tryToPerform('dragStarted', this, evt) ;
     }
@@ -456,7 +456,7 @@ SC.Drag = SC.Object.extend(
     }
     
     // notify all drop targets that the drag ended
-    var ary = this._dropTargets() ;
+    var ary = this._dropTargets(this.source) ;
     for (var idx=0, len=ary.length; idx<len; idx++) {
       try {
         ary[idx].tryToPerform('dragEnded', this, evt) ;
@@ -586,8 +586,10 @@ SC.Drag = SC.Object.extend(
     This means that if you change the view hierarchy of your drop targets
     during a drag, it will probably be wrong.
   */
-  _dropTargets: function() {
-    if (this._cachedDropTargets) return this._cachedDropTargets ;
+  _dropTargets: function(source) {
+    if (this._cachedSource === source) {
+      if (this._cachedDropTargets) return this._cachedDropTargets ;
+    }
     
     // build array of drop targets
     var ret = [] ;
@@ -617,11 +619,20 @@ SC.Drag = SC.Object.extend(
     // sort array of drop targets
     ret.sort(function(a,b) {
       if (a===b) return 0;
-      a = getDepthFor(a) ;
-      b = getDepthFor(b) ;
-      return (a > b) ? -1 : 1 ;
+      var par_source = null;
+      if (source) par_source = SC.guidFor(source.get('pane'));
+      
+      var par_a = SC.guidFor(a.get('pane'));
+      var par_b = SC.guidFor(b.get('pane'));
+      if (par_a===par_b) {
+        a = getDepthFor(a) ;
+        b = getDepthFor(b) ;
+        return (a > b) ? -1 : 1 ;
+      } else if (par_a===par_source) return -1;
+      else if (par_b===par_source) return 1;
     }) ;
     
+    this._cachedSource = source ;
     this._cachedDropTargets = ret ;
     return ret ;
   },
@@ -634,7 +645,7 @@ SC.Drag = SC.Object.extend(
     var loc = { x: evt.pageX, y: evt.pageY } ;
     
     var target, frame ;
-    var ary = this._dropTargets() ;
+    var ary = this._dropTargets(this.source) ;
     for (var idx=0, len=ary.length; idx<len; idx++) {
       target = ary[idx] ;
       
